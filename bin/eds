@@ -9,4 +9,4 @@ dr run --rm \
    -p 4200:4200 \
    -p 49152:49152 \
    --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
-   ember ember serve $@
+   madnificent/ember ember serve $@
