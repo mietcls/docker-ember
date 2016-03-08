@@ -11,6 +11,6 @@ RUN wget -qO- https://deb.nodesource.com/setup_4.x > node_setup.sh
 RUN bash node_setup.sh
 RUN apt-get -y install nodejs
 RUN npm install -g bower
-RUN npm install -g ember-cli@2.3.0-beta.2
+RUN npm install -g ember-cli@2.4.2
 
 WORKDIR /app
