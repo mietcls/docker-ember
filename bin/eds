@@ -1,0 +1,12 @@
+#!/bin/bash
+# This is the standard command to use when launching an ember server.  Note that
+# the container's host is available at hostname `host` instead of `localhost`.
+# eg:
+#   eds
+#   eds --proxy http://host:8080
+dr run --rm \
+   -v "`pwd`:/app" \
+   -p 4200:4200 \
+   -p 49152:49152 \
+   --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
+   ember ember serve $@

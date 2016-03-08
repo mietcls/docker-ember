@@ -1,0 +1,13 @@
+#!/bin/bash
+# This is the standard command to use when running non-interactive commands
+# eg:
+#   ed ember generate model post 
+#   ed npm install
+#   ed bower install
+dr run --rm \
+   # see https://gist.github.com/d11wtq/8699521
+   --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+   -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
+   --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
+   --volume "`pwd`:/app" \
+   madnificent/ember $@
