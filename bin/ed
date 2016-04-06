@@ -11,4 +11,4 @@ dr run --rm \
    -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
    --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
    --volume "`pwd`:/app" \
-   madnificent/ember $@
+   madnificent/ember:2.4.3 $@

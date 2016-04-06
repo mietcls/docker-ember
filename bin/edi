@@ -2,11 +2,11 @@
 # This is the command to use when running interactive commands
 # eg:
 #   edi ember release --minor
-   # see https://gist.github.com/d11wtq/8699521
+# see https://gist.github.com/d11wtq/8699521
 dr run --rm \
    -it \
    --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
    -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
    --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
    --volume "`pwd`:/app" \
-   madnificent/ember $@
+   madnificent/ember:2.4.3 $@
