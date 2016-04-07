@@ -6,8 +6,17 @@
 #   ed bower install
 
 # see https://gist.github.com/d11wtq/8699521
+linked_volumes=""
+for file in `find ~/.local/lib/node_modules/ -maxdepth 1 -type l`
+do
+    name=`basename $file`
+    real_target=`readlink $file`
+    linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
+done
+
 dr run --rm \
    --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+   $linked_volumes \
    -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
    --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
    --volume "`pwd`:/app" \
