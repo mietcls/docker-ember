@@ -12,10 +12,10 @@ do
     linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
 done
 
-dr run --rm \
-   -v "`pwd`:/app" \
-   $linked_volumes \
-   -p 4200:4200 \
-   -p 49152:49152 \
-   --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
-   madnificent/ember:2.4.3 ember serve $@
+docker run --rm \
+       -v "`pwd`:/app" \
+       $linked_volumes \
+       -p 4200:4200 \
+       -p 49152:49152 \
+       --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
+       madnificent/ember:2.4.3 ember serve $@

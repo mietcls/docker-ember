@@ -11,11 +11,11 @@ do
     linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
 done
 
-dr run --rm \
-   -it \
-   --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
-   -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-   $linked_volumes \
-   --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
-   --volume "`pwd`:/app" \
-   madnificent/ember:2.4.3 $@
+docker run --rm \
+       -it \
+       --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+       -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
+       $linked_volumes \
+       --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
+       --volume "`pwd`:/app" \
+       madnificent/ember:2.4.3 $@
