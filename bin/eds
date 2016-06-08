@@ -18,4 +18,4 @@ docker run --rm \
        -p 4200:4200 \
        -p 49152:49152 \
        --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
-       madnificent/ember:2.5.1 ember serve $@
+       madnificent/ember:2.6.0-beta.4 ember serve $@
