@@ -1,11 +1,11 @@
 #!/bin/bash
 # This is the standard command to use when running non-interactive commands
 # eg:
-#   ed ember generate model post 
+#   ed ember generate model post
 #   ed npm install
 #   ed bower install
 
-VERSION="2.6.0"
+VERSION="2.7.0-beta.1"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
