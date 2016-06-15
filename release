@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Help information
+if [ "$#" -eq 0 ]
+then
+    echo "Usage: release ember-version"
+    echo ""
+    echo "releases a new version of the ember-docker."
+    echo ""
+    echo "To release version 2.5.1"
+    echo "> sh release 2.5.1"
+    echo ""
+    exit 0;
+fi
+
+# Helper functions
+answerPositive(){
+    while true; do
+	read -p "$1 [Yn] " yn
+	case $yn in
+            [Yy]* ) exit 0;;
+	    [Nn]* ) exit 1;;
+	    "" ) exit 0;;
+	    * ) answerPositive "$1";;
+	esac
+    done
+}
+
+SCRIPT_FOLDER=`dirname "$(readlink -f "$0")"`
+
+pushd "$SCRIPT_FOLDER/templates"
+
+
+VERSION_NUMBER="$1"
+FULL_VERSION="v$1"
+if $(answerPositive "Continue building for $FULL_VERSION?")
+then
+    echo "YAY"
+else
+    popd
+    exit 1;
+fi
+
+if $(answerPositive "Create new files from template?")
+then
+    for file in `find . -type f`
+    do
+	cp "$file" "../$file"
+	sed -i "s/EMBER_VERSION/$VERSION_NUMBER/" ../$file
+    done
+else
+    echo "Not creating scripts...  exiting"
+    exit 1;
+fi
+
+if $(answerPositive "Set $VERSION_NUMBER as your default version?")
+then
+    echo "Writing ember version to ~/.config/edi/settings"
+    if [ -r ~/.config/edi/settings ]
+    then
+	sed -i "s/VERSION=.*/VERSION=\"$VERSION_NUMBER\"/" ~/.config/edi/settings
+    else
+	mkdir -p ~/.config/edi
+	echo "VERSION=\"$VERSION_NUMBER\"" > ~/.config/edi/settings
+    fi
+else
+    echo "Not changing settings in ~/.config/edi/settings"
+fi
+	
+if $(answerPositive "Commit new version?")
+then
+    git commit -a -m "Build for ember-cli $VERSION_NUMBER"
+else
+    echo "Not creating new commit...  exiting"
+    exit 1;
+fi
+
+if $(answerPositive "Create git tag $FULL_VERSION?")
+then
+    git tag $FULL_VERSION
+else
+    echo "Not creating new tag... exiting"
+    exit 1;
+fi
+
+if $(answerPositive "Push tag to origin?")
+then
+    git push origin $FULL_VERSION
+else
+    echo "Not pushing tag to origin... exiting"
+    exit 1;
+fi
+
+if $(answerPositive "Reset to previous commit?")
+then
+    git reset HEAD^
+fi
