@@ -57,3 +57,14 @@ and you can provide interactive answers.
     # Release a new minor version
     edi ember release --minor
 
+### edl
+`edl` is your friend when developing addons. It provides a replacement for `nmp link` that works in docker-ember. 
+
+    # Create a global symlink of your addon
+		cd your-ember-addon
+		edl
+		# Use that addon in another project
+		cd your-ember-project
+		edl your-ember-addon
+
+*Note*: `edl` assumes `edi` is available on your PATH
