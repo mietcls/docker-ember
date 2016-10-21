@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # This is the command to use when you would normally run "npm link"
 
@@ -15,22 +16,22 @@ function jsonval {
 
 # supporting function to verify we're on the right path
 function verify_path {
-if [ ! -f $PACKAGE_FILE ]; then
-	 echo "Error: "
-	 echo "  package.json not found, please run in the root directory of your addon"
-	 exit -1
-fi
+  if [ ! -f $PACKAGE_FILE ]; then
+	   echo "Error: "
+	   echo "  package.json not found, please run in the root directory of your addon"
+	   exit -1
+  fi
 }
 
 # supporting function to create symlinks
 function npm_link {
-prop=name
-json=`cat $PACKAGE_FILE`
-ln -s `pwd` $NODE_M_PATH`jsonval`
-if [ $? == 0 ];then 
-  echo "created symlink for '`jsonval`' in node_modules"
-  echo "you can now add this addon to your project using 'edl `jsonval`'"
-fi
+  prop=name
+  json=`cat $PACKAGE_FILE`
+  ln -s -T  `pwd` "$NODE_M_PATH"`jsonval`
+  if [ $? == 0 ];then 
+    echo "created symlink for '`jsonval`' in node_modules"
+    echo "you can now add this addon to your project using 'edl `jsonval`'"
+  fi
 }
 
 
