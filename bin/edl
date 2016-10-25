@@ -1,0 +1,52 @@
+
+#!/bin/bash
+# This is the command to use when you would normally run "npm link"
+
+NODE_M_PATH="/home/`whoami`/.local/lib/node_modules/"
+PACKAGE_FILE="package.json"
+
+# make sure path is available
+mkdir -p $NODE_M_PATH
+
+# supporting function to extract json values
+function jsonval {
+    temp=`echo $json | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $prop | cut -d":" -f2| sed -e 's/^ *//g' -e 's/ *$//g' `
+    echo ${temp##*|}
+}
+
+# supporting function to verify we're on the right path
+function verify_path {
+  if [ ! -f $PACKAGE_FILE ]; then
+	   echo "Error: "
+	   echo "  package.json not found, please run in the root directory of your addon"
+	   exit -1
+  fi
+}
+
+# supporting function to create symlinks
+function npm_link {
+  prop=name
+  json=`cat $PACKAGE_FILE`
+  ln -s -T  `pwd` "$NODE_M_PATH"`jsonval`
+  if [ $? == 0 ];then 
+    echo "created symlink for '`jsonval`' in node_modules"
+    echo "you can now add this addon to your project using 'edl `jsonval`'"
+  fi
+}
+
+
+if [[ $# -ge 2 || $1 == "-h" ]];then
+		echo "usage: "
+		echo " edl  (create a symlink to package)"
+		echo " edl [package-name] (use a local symlinked package)"
+		echo " edl -h (this help text)"
+		exit 1;
+fi
+
+if [[ -n $1 ]];then
+		edi npm link $1		
+else
+		verify_path && npm_link
+fi
+
+
