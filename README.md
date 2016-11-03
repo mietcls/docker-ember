@@ -61,13 +61,13 @@ and you can provide interactive answers.
 `edl` is your friend when developing addons. It provides a replacement for `npm link` and `npm unlink` that works in docker-ember. 
 
     # Create a global symlink of your addon
-		cd your-ember-addon
-		edl
-		# Use that addon in another project
-		cd your-ember-project
-		edl your-ember-addon
-		# Remove the global symlink of your addon
-		cd your-ember-addon
-		edl -u
+    cd your-ember-addon
+    edl
+    # Use that addon in another project
+    cd your-ember-project
+    edl your-ember-addon
+    # Remove the global symlink of your addon
+    cd your-ember-addon
+    edl -u
 
 *Note*: `edl` assumes `edi` is available on your PATH
