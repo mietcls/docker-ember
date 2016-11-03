@@ -1,6 +1,9 @@
-
 #!/bin/bash
 # This is the command to use when you would normally run "npm link"
+# eg:
+#     edl (npm link)
+#     edl my-addon  (npm link my-addon)
+#     edl -u (npm unlink)
 
 NODE_M_PATH="/home/`whoami`/.local/lib/node_modules/"
 PACKAGE_FILE="package.json"
@@ -34,19 +37,34 @@ function npm_link {
   fi
 }
 
+# supporting function to create symlinks
+function npm_unlink {
+  prop=name
+  json=`cat $PACKAGE_FILE`
+  unlink "$NODE_M_PATH"`jsonval`
+  if [ $? == 0 ];then 
+    echo "removed symlink for '`jsonval`' from node_modules"
+  fi
+}
 
-if [[ $# -ge 2 || $1 == "-h" ]];then
+function show_usage {
 		echo "usage: "
 		echo " edl  (create a symlink to package)"
 		echo " edl [package-name] (use a local symlinked package)"
-		echo " edl -h (this help text)"
+		echo " edl -u (remove symlink to current package)"
+		echo " edl -h (this help text)"	 
 		exit 1;
-fi
-
-if [[ -n $1 ]];then
+}
+if [[ $1 == "-h" ]];then
+	  show_usage
+elif [[ $# -eq 1 && $1 == "-u" ]]; then
+    verify_path && npm_unlink
+elif [[ $# -eq 1 ]];then
 		edi npm link $1		
-else
+elif [[ $# -eq 0 ]];then
 		verify_path && npm_link
+else
+    show_usage
 fi
 
 
