@@ -13,7 +13,7 @@ build environment.
 
 With the advent of user-namespaces in Docker, mounting volumes with
 the right privileges has become
-transparant. (seehttp://www.jrslv.com/docker-1-10/#usernamespacesindocker
+transparant. (see http://www.jrslv.com/docker-1-10/#usernamespacesindocker
 for some basic info)
 
 The arguments you need to pass to the Docker run command for it to be
@@ -68,3 +68,29 @@ and you can provide interactive answers.
 		edl your-ember-addon
 
 *Note*: `edl` assumes `edi` is available on your PATH
+
+## How?
+Assuming you have docker setup, simply clone this repository and add the bin folder to your path.
+
+```
+git clone https://github.com/madnificent/docker-ember.git
+echo "export PATH=\$PATH:`pwd`/docker-ember/bin" > ~/.bashrc
+```
+
+By default `ed*` commands run as root in the docker container, you can use user namespaces to map this root user to your own user.
+Assuming systemd and a username `my-user` the following steps should suffice:
+
+Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
+
+```
+MY_USER_UID=`grep my-user  /etc/passwd | awk -F':' '{ print $3 }'`
+MY_USER_GUID=`grep my-user  /etc/passwd | awk -F':' '{ print $4 }'`
+echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
+echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
+```
+
+Adjust ExecStart of `/usr/lib/systemd/system/docker.service` to include `--userns-remap=ns1`
+
+More information on user namespaces is available here:
+ * http://docs-stage.docker.com/v1.10/engine/reference/commandline/daemon/#starting-the-daemon-with-user-namespaces-enabled
+ * https://docs.oracle.com/cd/E52668_01/E75728/html/ol-docker-userns-remap.html
