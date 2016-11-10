@@ -94,11 +94,12 @@ echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
 echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
 ```
 
-### 2. Adjust ExecStart of `docker.service` to include `--userns-remap=ns1`. 
+### 2. Adjust ExecStart of docker daemon to include `--userns-remap=ns1`. 
 
 For systemd you can use the following command:
 ```bash
 systemctl edit docker.service
+```
 
 The config file might look this:
 ```
