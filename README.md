@@ -73,7 +73,7 @@ and you can provide interactive answers.
 *Note*: `edl` assumes `edi` is available on your PATH
 
 ## How?
-Assuming you have docker setup, simply clone this repository and add the bin folder to your path.
+Assuming you have docker set up correctly, simply clone this repository and add the bin folder to your path.
 
 ```
 git clone https://github.com/madnificent/docker-ember.git
@@ -92,7 +92,12 @@ echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
 echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
 ```
 
-Adjust ExecStart of `/usr/lib/systemd/system/docker.service` to include `--userns-remap=ns1`
+Adjust ExecStart of `docker.service` to include `--userns-remap=ns1`: `systemctl edit docker.service`. For example
+
+```
+ExecStart=
+ExecStart=/usr/bin/dockerd --userns-remap=ns1
+```
 
 More information on user namespaces is available here:
  * http://docs-stage.docker.com/v1.10/engine/reference/commandline/daemon/#starting-the-daemon-with-user-namespaces-enabled
