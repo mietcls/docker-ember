@@ -75,25 +75,30 @@ and you can provide interactive answers.
 ## How?
 Assuming you have docker set up correctly, simply clone this repository and add the bin folder to your path.
 
-```
+```bash
 git clone https://github.com/madnificent/docker-ember.git
-echo "export PATH=\$PATH:`pwd`/docker-ember/bin" > ~/.bashrc
+echo "export PATH=\$PATH:`pwd`/docker-ember/bin" >> ~/.bashrc
+source ~/.bashrc
 ```
 
-By default `ed*` commands run as root in the docker container, you can use user namespaces to map this root user to your own user.
-Assuming systemd and a username `my-user` the following steps should suffice:
+By default `ed*` commands run as root in the docker container, this means newly created files will be owned as root as well. To avoid this you can use user namespaces to map the container's root user to your own user. This requires some minimal configuration. Assuming systemd and a username `my-user` the following steps should suffice:
 
-Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
+1. Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
 
-```
+```bash
 MY_USER_UID=`grep my-user  /etc/passwd | awk -F':' '{ print $3 }'`
 MY_USER_GUID=`grep my-user  /etc/passwd | awk -F':' '{ print $4 }'`
 echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
 echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
 ```
 
-Adjust ExecStart of `docker.service` to include `--userns-remap=ns1`: `systemctl edit docker.service`. For example
+2. Adjust ExecStart of `docker.service` to include `--userns-remap=ns1`. 
 
+For systemd you can use the following command:
+```bash
+systemctl edit docker.service
+
+The config file might look this:
 ```
 ExecStart=
 ExecStart=/usr/bin/dockerd --userns-remap=ns1
