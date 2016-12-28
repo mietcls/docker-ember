@@ -24,6 +24,6 @@ docker run --rm \
        --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
        $linked_volumes \
        -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-       --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
+       --volume /home/`whoami`/.gitconfig:/root/.gitconfig \
        --volume "`pwd`:/app" \
        madnificent/ember:$VERSION $@
