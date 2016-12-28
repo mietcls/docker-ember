@@ -1,11 +1,11 @@
 #!/bin/bash
 # This is the standard command to use when running non-interactive commands
 # eg:
-#   ed ember generate model post 
+#   ed ember generate model post
 #   ed npm install
 #   ed bower install
 
-VERSION="2.6.0"
+VERSION="2.10.0"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
@@ -24,6 +24,6 @@ docker run --rm \
        --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
        $linked_volumes \
        -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-       --volume /home/`whoami`/.gitconfig:/root/.gitconfig \
+       --volume /home/`whoami`/.gitconfig:/root/.gitconfig:ro \
        --volume "`pwd`:/app" \
        madnificent/ember:$VERSION $@
