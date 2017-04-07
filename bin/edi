@@ -4,7 +4,7 @@
 #   edi ember release --minor
 # see https://gist.github.com/d11wtq/8699521
 
-VERSION="2.6.0"
+VERSION="2.12.0"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
