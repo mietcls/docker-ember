@@ -5,10 +5,15 @@
 #   eds
 #   eds --proxy http://host:8080
 
-VERSION="2.6.0"
+VERSION="2.13.0"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
+fi
+
+if [ -n "$EDI_EMBER_VERSION" ]
+then
+    VERSION=$EDI_EMBER_VERSION
 fi
 
 linked_volumes=""
