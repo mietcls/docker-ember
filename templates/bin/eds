@@ -30,5 +30,6 @@ docker run --rm \
        $linked_volumes \
        -p 4200:4200 \
        -p 49152:49152 \
+       -p 49153:49153 \
        --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
        madnificent/ember:$VERSION ember serve $@
