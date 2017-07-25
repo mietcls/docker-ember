@@ -5,12 +5,13 @@
 #   eds
 #   eds --proxy http://host:8080
 
-VERSION="2.13.0"
+VERSION="2.14.0"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
 fi
 
+# Allow overriding the edi version
 if [ -n "$EDI_EMBER_VERSION" ]
 then
     VERSION=$EDI_EMBER_VERSION

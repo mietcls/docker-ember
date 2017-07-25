@@ -8,6 +8,6 @@ RUN bash node_setup.sh
 RUN apt-get -y install nodejs
 RUN npm install -g bower@1.7.9
 RUN echo '{ "allow_root": true }' > /root/.bowerrc
-RUN npm install -g ember-cli@EMBER_VERSION
+RUN npm install -g ember-cli@@EMBER_VERSION
 
 WORKDIR /app

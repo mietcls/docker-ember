@@ -5,7 +5,7 @@
 #   ed npm install
 #   ed bower install
 
-VERSION="EMBER_VERSION"
+VERSION="@EMBER_VERSION"
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
