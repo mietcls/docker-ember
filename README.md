@@ -90,10 +90,8 @@ Assuming systemd and access to the `id` command the following steps should suffi
 ### 1. Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
 
 ```bash
-MY_USER_UID=`id -u`
-MY_USER_GUID=`id -g`
-echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
-echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
+echo "$( whoami ):$(id -u):65536" |  sudo tee -a /etc/subuid
+echo "$( whoami ):$(id -g):65536" |  sudo tee -a /etc/subgid
 ```
 
 ### 2. Adjust ExecStart of docker daemon to include `--userns-remap=ns1`. 
@@ -107,7 +105,7 @@ The config file might look this:
 ```
 [Service]
 ExecStart=
-ExecStart=/usr/bin/dockerd --userns-remap=ns1
+ExecStart=/usr/bin/dockerd --userns-remap="your-user-name"
 ```
 
 More information on user namespaces is available [in the docker documentation](https://docs.docker.com/engine/security/userns-remap/)
