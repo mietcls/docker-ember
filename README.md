@@ -105,6 +105,7 @@ systemctl edit docker.service
 
 The config file might look this:
 ```
+[Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd --userns-remap=ns1
 ```
