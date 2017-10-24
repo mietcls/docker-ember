@@ -6,6 +6,9 @@
 #   eds --proxy http://host:8080
 
 VERSION="2.14.0"
+UNMOUNTED_FILES=("tmp" ".editorconfig" "README.md")
+EDI_AUTHORATIVE_FILES=("dist" "node_modules" "vendor" "bower_components")
+
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
@@ -25,9 +28,22 @@ do
     linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
 done
 
+mounted_current_volumes=""
+for file in `find . -maxdepth 1 -mindepth 1`
+do
+    name=`basename $file`
+    if echo ${UNMOUNTED[@]} | grep -q -w "$name"; then
+        echo "Not mounting $file"
+    elif echo ``${EDI_AUTHORATIVE[@]} | grep -q -w "$name"; then
+        mounted_current_volumes="$mounted_current_volumes --volume `pwd`/$file:/app/$name:delegated"
+    else
+        mounted_current_volumes="$mounted_current_volumes --volume `pwd`/$file:/app/$name:cached"
+    fi
+done
+
 docker run --rm \
-       -v "`pwd`:/app" \
        $linked_volumes \
+       $mounted_current_volumes \
        -p 4200:4200 \
        -p 49152:49152 \
        -p 49153:49153 \
