@@ -5,7 +5,7 @@
 #     edl my-addon  (npm link my-addon)
 #     edl -u (npm unlink)
 
-NODE_M_PATH="/home/`whoami`/.local/lib/node_modules/"
+NODE_M_PATH="~/.local/lib/node_modules/"
 PACKAGE_FILE="package.json"
 
 # make sure path is available
