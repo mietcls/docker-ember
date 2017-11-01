@@ -41,11 +41,20 @@ do
     fi
 done
 
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    # Linux
+    DOCKERHOST=`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"`
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # Mac OSX
+    # Solution found via https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
+    DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
+fi
+
 docker run --rm \
        $linked_volumes \
        $mounted_current_volumes \
        -p 4200:4200 \
        -p 49152:49152 \
        -p 49153:49153 \
-       --add-host host:`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"` \
+       --add-host host:$DOCKERHOST \
        madnificent/ember:$VERSION ember serve $@
