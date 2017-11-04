@@ -5,8 +5,6 @@
 # see https://gist.github.com/d11wtq/8699521
 
 VERSION="2.14.0"
-UNMOUNTED=("tmp" ".editorconfig" "README.md")
-EDI_AUTHORATIVE=("dist" "node_modules" "vendor" "bower_components")
 
 if [ -r ~/.config/edi/settings ]
 then
@@ -27,24 +25,12 @@ do
     linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
 done
 
-mounted_current_volumes=""
-for file in `find . -maxdepth 1 -mindepth 1`
-do
-    name=`basename $file`
-    if echo ${UNMOUNTED[@]} | grep -q -w "$name"; then
-        echo "Not mounting $file"
-    elif echo ``${EDI_AUTHORATIVE[@]} | grep -q -w "$name"; then
-        mounted_current_volumes="$mounted_current_volumes --volume `pwd`/$file:/app/$name:delegated"
-    else
-        mounted_current_volumes="$mounted_current_volumes --volume `pwd`/$file:/app/$name:cached"
-    fi
-done
-
 docker run --rm \
        -it \
+       --volume `pwd`:/app/ \
+       --volume /app/tmp \
        --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
        -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
        $linked_volumes \
-       $mounted_current_volumes \
        --volume $HOME/.gitconfig:/root/.gitconfig \
        madnificent/ember:$VERSION $@
