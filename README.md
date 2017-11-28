@@ -73,9 +73,9 @@ and you can provide interactive answers.
 *Note*: `edl` assumes `edi` is available on your PATH
 
 ## How?
-Assuming you have docker set up correctly, simply clone this repository and add the bin folder to your path.
 
 ### On Linux
+Assuming you have docker set up correctly, simply clone this repository and add the bin folder to your path.
 ```bash
 git clone https://github.com/madnificent/docker-ember.git
 echo "export PATH=\$PATH:`pwd`/docker-ember/bin" >> ~/.bashrc
