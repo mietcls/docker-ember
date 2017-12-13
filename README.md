@@ -81,20 +81,22 @@ echo "export PATH=\$PATH:`pwd`/docker-ember/bin" >> ~/.bashrc
 source ~/.bashrc
 ```
 
+### On linux
+
 By default `ed*` commands run as root in the docker container, this means newly created files will be owned as root as well. To avoid this you can use user namespaces to map the container's root user to your own user. This requires some minimal configuration.
 
 *Note*: on ubuntu 16.04 your user needs to part of the docker group so that it has access to `/var/run/docker.sock`
 
 Assuming systemd and access to the `id` command the following steps should suffice:
 
-### 1. Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
+#### 1. Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
 
 ```bash
 echo "$( whoami ):$(id -u):65536" |  sudo tee -a /etc/subuid
 echo "$( whoami ):$(id -g):65536" |  sudo tee -a /etc/subgid
 ```
 
-### 2. Adjust ExecStart of docker daemon to include `--userns-remap=ns1`. 
+#### 2. Adjust ExecStart of docker daemon to include `--userns-remap=ns1`.
 
 For systemd you can use the following command:
 ```bash
@@ -109,3 +111,13 @@ ExecStart=/usr/bin/dockerd --userns-remap="your-user-name"
 ```
 
 More information on user namespaces is available [in the docker documentation](https://docs.docker.com/engine/security/userns-remap/)
+
+### On Mac
+
+Docker for Mac creates files under the right username automatically.  Mac does use a login shell when launching the default terminal app, rather than an interactive shell.  These shells don't read the standard ~/.bashrc file, but rather the ~/.bash\_profile file.  Make sure the following is present in your ~/.bash\_profile so ~/.bashrc is always read.
+
+```
+if [ -f ~/.bashrc ]; then
+   source ~/.bashrc
+fi
+```

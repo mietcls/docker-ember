@@ -5,7 +5,7 @@
 #     edl my-addon  (npm link my-addon)
 #     edl -u (npm unlink)
 
-NODE_M_PATH="/home/`whoami`/.local/lib/node_modules/"
+NODE_M_PATH="${HOME}/.local/lib/node_modules/"
 PACKAGE_FILE="package.json"
 
 # make sure path is available
@@ -30,7 +30,9 @@ function verify_path {
 function npm_link {
   prop=name
   json=`cat $PACKAGE_FILE`
-  ln -s -T  `pwd` "$NODE_M_PATH"`jsonval`
+  link_target="$(pwd)"
+  link_name="$NODE_M_PATH$(jsonval)"
+  ln -s $link_target $link_name
   if [ $? == 0 ];then 
     echo "created symlink for '`jsonval`' in node_modules"
     echo "you can now add this addon to your project using 'edl `jsonval`'"
