@@ -46,7 +46,7 @@ then
     for file in `find . -type f`
     do
         cp "$file" "../$file"
-        sed -i "s/@EMBER_VERSION/$VERSION_NUMBER/" ../$file
+        sed -i "" "s/@EMBER_VERSION/$VERSION_NUMBER/" ../$file
     done
 else
     echo "Not creating scripts...  exiting"
@@ -58,7 +58,7 @@ then
     echo "Writing ember version to ~/.config/edi/settings"
     if [ -r ~/.config/edi/settings ]
     then
-        sed -i "s/VERSION=.*/VERSION=\"$VERSION_NUMBER\"/" ~/.config/edi/settings
+        sed -i "" "s/VERSION=.*/VERSION=\"$VERSION_NUMBER\"/" ~/.config/edi/settings
     else
         mkdir -p ~/.config/edi
         echo "VERSION=\"$VERSION_NUMBER\"" > ~/.config/edi/settings
