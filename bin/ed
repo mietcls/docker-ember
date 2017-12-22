@@ -26,9 +26,56 @@ then
     do
         name=`basename $file`
         real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
+        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:delegated "
     done
 fi
+
+
+if [ "$(uname)" == "Darwin" ]
+then
+    CONTAINER_NAME="ed"
+    SSH_AGENT_NAME="pinata-sshd"
+
+    # start ssh agent, which forwards ssh-socket. Known bug in docker for mac: https://github.com/docker/for-mac/issues/410
+    if [ ! "$(Docker ps -q -f name=$SSH_AGENT_NAME)" ]; then
+
+        echo "Starting $SSH_AGENT_NAME"
+
+        if [ "$(docker ps -aq -f status=exited -f name=$SSH_AGENT_NAME)" ]; then
+            # cleanup
+            docker rm $SSH_AGENT_NAME
+        fi
+        pinata-ssh-forward
+        ssh-add
+    fi
+
+
+    # check if daemon container runs, if not start it (and clean eventual exited containers)
+    # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
+    if [ ! "$(Docker ps -q -f name=$CONTAINER_NAME)" ]; then
+
+        echo "Starting container named $CONTAINER_NAME"
+
+        if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
+            # cleanup
+            docker rm $CONTAINER_NAME
+        fi
+
+        # run your container
+        docker run -td --name $CONTAINER_NAME \
+               $(pinata-ssh-mount) \
+               --volume `pwd`:/app/:delegated \
+               --volume /app/tmp \
+               $linked_volumes \
+               --volume $HOME/.gitconfig:/root/.gitconfig:delegated \
+               $mounted_current_volumes \
+               madnificent/ember:$VERSION ;
+    fi
+
+    echo "Executing command $@ on $CONTAINER_NAME"
+    docker exec -ti $CONTAINER_NAME $@
+
+else
 
 docker run --rm \
        --volume `pwd`:/app/ \
@@ -39,3 +86,5 @@ docker run --rm \
        --volume $HOME/.gitconfig:/root/.gitconfig \
        $mounted_current_volumes \
        madnificent/ember:$VERSION $@
+
+fi
