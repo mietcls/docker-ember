@@ -28,9 +28,9 @@ then
     done
 fi
 
-if [ "$(uname)" == "Darwin" ]
+ssh_agent_options=""
+if [ -n "$EDI_SSH_AGENT_CONTAINER" ]
 then
-    CONTAINER_NAME="edi"
     SSH_AGENT_NAME="pinata-sshd"
 
     # start ssh agent, which forwards ssh-socket. Known bug in docker for mac: https://github.com/docker/for-mac/issues/410
@@ -45,7 +45,12 @@ then
         pinata-ssh-forward
         ssh-add
     fi
+    ssh_agent_options="$(pinata-ssh-mount)"
+fi
 
+if [ -n "$EDI_USE_EDI_DAEMON" ]
+then
+    CONTAINER_NAME="edi"
 
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
@@ -53,14 +58,14 @@ then
 
         echo "Starting container named $CONTAINER_NAME"
 
+        # cleanup exited edi daemon
         if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
-            # cleanup
             docker rm $CONTAINER_NAME
         fi
 
-        # run your container
+        # run new edi daemon
         docker run -td --name $CONTAINER_NAME \
-               $(pinata-ssh-mount) \
+               $ssh_agent_options \
                --volume `pwd`:/app/:delegated \
                --volume /app/tmp \
                $linked_volumes \
@@ -68,19 +73,19 @@ then
                madnificent/ember:$VERSION ;
     fi
 
+    # run command
     echo "Executing command $@ on $CONTAINER_NAME"
     docker exec -ti $CONTAINER_NAME $@
-
 else
-
-docker run --rm \
-       -it \
-       --volume `pwd`:/app/ \
-       --volume /app/tmp \
-       --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
-       -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-       $linked_volumes \
-       --volume $HOME/.gitconfig:/root/.gitconfig \
-       madnificent/ember:$VERSION $@
+    docker run --rm \
+           -it \
+           --volume `pwd`:/app/ \
+           --volume /app/tmp \
+           --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+           -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
+           $linked_volumes \
+           $ssh_agent_options
+           --volume $HOME/.gitconfig:/root/.gitconfig \
+           madnificent/ember:$VERSION $@
 
 fi
