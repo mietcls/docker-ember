@@ -34,7 +34,7 @@ then
     SSH_AGENT_NAME="pinata-sshd"
 
     # start ssh agent, which forwards ssh-socket. Known bug in docker for mac: https://github.com/docker/for-mac/issues/410
-    if [ ! "$(Docker ps -q -f name=$SSH_AGENT_NAME)" ]; then
+    if [ ! "$(docker ps -q -f name=$SSH_AGENT_NAME)" ]; then
 
         echo "Starting $SSH_AGENT_NAME"
 
@@ -54,7 +54,7 @@ then
 
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
-    if [ ! "$(Docker ps -q -f name=$CONTAINER_NAME)" ]; then
+    if [ ! "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
 
         echo "Starting container named $CONTAINER_NAME"
 
