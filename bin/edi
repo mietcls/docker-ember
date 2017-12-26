@@ -48,6 +48,15 @@ then
     ssh_agent_options="$(pinata-ssh-mount)"
 fi
 
+standard_options="--volume `pwd`:/app/:delegated \
+                  --volume /app/tmp \
+                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated \
+                  $linked_volumes \
+                  $ssh_agent_options"
+
+docker_image="madnificent/ember:$VERSION"
+
+
 if [ -n "$EDI_USE_EDI_DAEMON" ]
 then
     CONTAINER_NAME="edi"
@@ -65,12 +74,8 @@ then
 
         # run new edi daemon
         docker run -td --name $CONTAINER_NAME \
-               $ssh_agent_options \
-               --volume `pwd`:/app/:delegated \
-               --volume /app/tmp \
-               $linked_volumes \
-               --volume $HOME/.gitconfig:/root/.gitconfig:delegated \
-               madnificent/ember:$VERSION ;
+               $standard_options \
+               $docker_image ;
     fi
 
     # run command
@@ -79,13 +84,8 @@ then
 else
     docker run --rm \
            -it \
-           --volume `pwd`:/app/ \
-           --volume /app/tmp \
            --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
            -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-           $linked_volumes \
-           $ssh_agent_options
-           --volume $HOME/.gitconfig:/root/.gitconfig \
-           madnificent/ember:$VERSION $@
-
+           $standard_options \
+           $docker_image $@
 fi
