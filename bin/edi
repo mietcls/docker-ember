@@ -46,6 +46,9 @@ then
         ssh-add
     fi
     ssh_agent_options="$(pinata-ssh-mount)"
+else
+    ssh_agent_options="--volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+                       -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
 fi
 
 mkdir -p $HOME/.ssh
@@ -88,8 +91,6 @@ then
 else
     docker run --rm \
            -it \
-           --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
-           -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
            $standard_options \
            $docker_image $@
 fi
