@@ -45,7 +45,12 @@ edi_calculate_linked_volumes_for_node_modules() {
                     # echo "Adding link: $file"
                     name=`basename $file`
                     source_folder=`readlink "$HOME/.local/lib/node_modules/$name"`
-                    linked_volumes="$linked_volumes --volume $source_folder:/usr/lib/node_modules/$name/:cached "
+                    if [ -n $EDI_MOUNT_USED_NODE_MODULES_WITHOUT_SYMLINKS ]
+                    then
+                        linked_volumes="$linked_volumes --volume $source_folder:/app/node_modules/$name/:cached "
+                    else
+                        linked_volumes="$linked_volumes --volume $source_folder:/usr/lib/node_modules/$name/:cached "
+                    fi
                     node_modules_next_search_folders=("${node_modules_next_search_folders[@]}" "$source_folder/node_modules/")
                 done
                 # echo "Current linked volumes: $linked_volumes"
