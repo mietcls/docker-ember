@@ -24,7 +24,7 @@ then
     do
         name=`basename $file`
         real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:delegated "
+        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:cached "
     done
 fi
 
