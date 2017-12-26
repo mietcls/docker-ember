@@ -11,91 +11,118 @@ then
     . ~/.config/edi/settings
 fi
 
-# Allow overriding the edi version
-if [ -n "$EDI_EMBER_VERSION" ]
-then
-    VERSION=$EDI_EMBER_VERSION
-fi
-
-mkdir -p $HOME/.local/lib/node_modules/
-linked_volumes=""
-
-if [ -n "$EDI_MOUNT_ONLY_USED_LINKED_MODULES" ]
-then
-    node_modules_next_search_folders=("./node_modules")
-    until [ "${#node_modules_next_search_folders[@]}" -eq 0 ]
-    do
-        node_modules_search_folders="${node_modules_next_search_folders[@]}"
-        node_modules_next_search_folders=()
-        echo "Checking folders: ${node_modules_search_folders[@]}"
-        for folder in ${node_modules_search_folders[@]}
-        do
-            for file in `find $folder -maxdepth 1 -type l`
-            do
-                echo "Adding link: $file"
-                name=`basename $file`
-                source_folder=`readlink "$HOME/.local/lib/node_modules/$name"`
-                linked_volumes="$linked_volumes --volume $source_folder:/usr/lib/node_modules/$name/:cached "
-                node_modules_next_search_folders=("${node_modules_next_search_folders[@]}" "$source_folder/node_modules/")
-            done
-            echo "Current linked volumes: $linked_volumes"
-        done
-    done
-    echo "$linked_volumes"
-else
-    for file in `find $HOME/.local/lib/node_modules/ -maxdepth 1 -type l`
-    do
-        name=`basename $file`
-        real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:delegated "
-    done
-fi
-
-ssh_agent_options=""
-if [ -n "$EDI_SSH_AGENT_CONTAINER" ]
-then
-    SSH_AGENT_NAME="pinata-sshd"
-
-    # start ssh agent, which forwards ssh-socket. Known bug in docker for mac: https://github.com/docker/for-mac/issues/410
-    if [ ! "$(docker ps -q -f name=$SSH_AGENT_NAME)" ]; then
-
-        echo "Starting $SSH_AGENT_NAME"
-
-        if [ "$(docker ps -aq -f status=exited -f name=$SSH_AGENT_NAME)" ]; then
-            # cleanup
-            docker rm $SSH_AGENT_NAME
-        fi
-        pinata-ssh-forward
-        ssh-add
+# Calculates the desired ember version based on the current settings.
+edi_calculate_docker_image() {
+    ember_version=""
+    if [ -n "$EDI_EMBER_VERSION" ]
+    then
+        ember_version="$EDI_EMBER_VERSION"
+    else
+        ember_version="$VERSION"
     fi
-    ssh_agent_options="$(pinata-ssh-mount)"
-else
-    ssh_agent_options="--volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
-                       -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
-fi
 
-mkdir -p $HOME/.ssh
-touch $HOME/.ssh/known_hosts
+    echo "madnificent/ember:$ember_version"
+}
 
-standard_options="--volume `pwd`:/app/:delegated \
-                  --volume /app/tmp \
-                  --volume $HOME/.ssh/known_hosts:/root/.ssh/known_hosts:cached \
-                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated \
-                  $linked_volumes \
-                  $ssh_agent_options"
+# Prints out the docker volume options for supporting the linked
+# node_volumes as constructed by the edl command.
+edi_calculate_linked_volumes_for_node_modules() {
+    mkdir -p $HOME/.local/lib/node_modules/
+    linked_volumes=""
 
-docker_image="madnificent/ember:$VERSION"
+    if [ -n "$EDI_MOUNT_ONLY_USED_LINKED_MODULES" ]
+    then
+        node_modules_next_search_folders=("./node_modules")
+        until [ "${#node_modules_next_search_folders[@]}" -eq 0 ]
+        do
+            node_modules_search_folders="${node_modules_next_search_folders[@]}"
+            node_modules_next_search_folders=()
+            # echo "Checking folders: ${node_modules_search_folders[@]}"
+            for folder in ${node_modules_search_folders[@]}
+            do
+                for file in `find $folder -maxdepth 1 -type l`
+                do
+                    # echo "Adding link: $file"
+                    name=`basename $file`
+                    source_folder=`readlink "$HOME/.local/lib/node_modules/$name"`
+                    linked_volumes="$linked_volumes --volume $source_folder:/usr/lib/node_modules/$name/:cached "
+                    node_modules_next_search_folders=("${node_modules_next_search_folders[@]}" "$source_folder/node_modules/")
+                done
+                # echo "Current linked volumes: $linked_volumes"
+            done
+        done
+        echo "$linked_volumes"
+    else
+        for file in `find $HOME/.local/lib/node_modules/ -maxdepth 1 -type l`
+        do
+            name=`basename $file`
+            real_target=`readlink $file`
+            linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:delegated "
+        done
+        echo "$linked_volumes"
+    fi
+}
 
+# Prints out docker options needed for supporting the chosen ssh
+# agent.
+edi_calculate_ssh_agent_options() {
+    mkdir -p $HOME/.ssh
+    touch $HOME/.ssh/known_hosts
+    known_hosts_volume_option="--volume $HOME/.ssh/known_hosts:/root/.ssh/known_hosts:cached "
 
-if [ -n "$EDI_USE_EDI_DAEMON" ]
-then
+    if [ -n "$EDI_SSH_AGENT_CONTAINER" ]
+    then
+        SSH_AGENT_NAME="pinata-sshd"
+
+        # start ssh agent, which forwards ssh-socket. Known bug in
+        # docker for mac: https://github.com/docker/for-mac/issues/410
+        if [ ! "$(docker ps -q -f name=$SSH_AGENT_NAME)" ]; then
+
+            echo "Starting $SSH_AGENT_NAME"
+
+            if [ "$(docker ps -aq -f status=exited -f name=$SSH_AGENT_NAME)" ]; then
+                # cleanup
+                docker rm $SSH_AGENT_NAME
+            fi
+            pinata-ssh-forward
+            ssh-add
+        fi
+        ssh_agent_options="$(pinata-ssh-mount)"
+    else
+        ssh_agent_options="--volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
+                           -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+    fi
+
+    echo "$ssh_agent_options \
+          $known_hosts_volume_option"
+}
+
+# Standard docker options including
+# - mounting of the application
+# - linked volumes for npm link
+# - options for sharing the ssh agent
+calculate_standard_docker_options() {
+    app_volumes="--volume `pwd`:/app/:delegated \
+                 --volume /app/tmp \
+                 --volume $HOME/.gitconfig:/root/.gitconfig:delegated "
+    linked_volumes=`edi_calculate_linked_volumes_for_node_modules`
+    ssh_agent_options=`edi_calculate_ssh_agent_options`
+
+    echo "$app_volumes \
+          $linked_volumes \
+          $ssh_agent_options "
+}
+
+edi_start_edi_daemon() {
+    DOCKER_IMAGE=$1
+    DOCKER_OPTIONS=$2
     CONTAINER_NAME="edi"
 
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
     if [ ! "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
 
-        echo "Starting container named $CONTAINER_NAME"
+        # echo "Starting container named $CONTAINER_NAME"
 
         # cleanup exited edi daemon
         if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
@@ -104,13 +131,24 @@ then
 
         # run new edi daemon
         docker run -td --name $CONTAINER_NAME \
-               $standard_options \
-               $docker_image ;
+               $DOCKER_OPTIONS \
+               $DOCKER_IMAGE
+        # TODO: add discovery of daemon and timeout
     fi
 
+    echo "$CONTAINER_NAME"
+}
+
+docker_image=`edi_calculate_docker_image`
+standard_options=`calculate_standard_docker_options`
+
+if [ -n "$EDI_USE_EDI_DAEMON" ]
+then
+    daemon_name=`edi_start_edi_daemon "$docker_image" "$standard_options"`
+
     # run command
-    echo "Executing command $@ on $CONTAINER_NAME"
-    docker exec -ti $CONTAINER_NAME $@
+    echo "Executing command $@ on $daemon_name"
+    docker exec -ti $daemon_name $@
 else
     docker run --rm \
            -it \
