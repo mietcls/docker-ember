@@ -48,8 +48,12 @@ then
     ssh_agent_options="$(pinata-ssh-mount)"
 fi
 
+mkdir -p $HOME/.ssh
+touch $HOME/.ssh/known_hosts
+
 standard_options="--volume `pwd`:/app/:delegated \
                   --volume /app/tmp \
+                  --volume $HOME/.ssh/known_hosts:/root/.ssh/known_hosts:cached \
                   --volume $HOME/.gitconfig:/root/.gitconfig:delegated \
                   $linked_volumes \
                   $ssh_agent_options"
