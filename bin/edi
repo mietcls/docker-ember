@@ -17,14 +17,37 @@ then
     VERSION=$EDI_EMBER_VERSION
 fi
 
+mkdir -p $HOME/.local/lib/node_modules/
 linked_volumes=""
-if [ -r $HOME/.local/lib/node_modules/ ]
+
+if [ -n "$EDI_MOUNT_ONLY_USED_LINKED_MODULES" ]
 then
+    node_modules_next_search_folders=("./node_modules")
+    until [ "${#node_modules_next_search_folders[@]}" -eq 0 ]
+    do
+        node_modules_search_folders="${node_modules_next_search_folders[@]}"
+        node_modules_next_search_folders=()
+        echo "Checking folders: ${node_modules_search_folders[@]}"
+        for folder in ${node_modules_search_folders[@]}
+        do
+            for file in `find $folder -maxdepth 1 -type l`
+            do
+                echo "Adding link: $file"
+                name=`basename $file`
+                source_folder=`readlink "$HOME/.local/lib/node_modules/$name"`
+                linked_volumes="$linked_volumes --volume $source_folder:/usr/lib/node_modules/$name/:cached "
+                node_modules_next_search_folders=("${node_modules_next_search_folders[@]}" "$source_folder/node_modules/")
+            done
+            echo "Current linked volumes: $linked_volumes"
+        done
+    done
+    echo "$linked_volumes"
+else
     for file in `find $HOME/.local/lib/node_modules/ -maxdepth 1 -type l`
     do
         name=`basename $file`
         real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:cached "
+        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/:delegated "
     done
 fi
 
