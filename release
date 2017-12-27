@@ -26,7 +26,12 @@ answerPositive(){
     done
 }
 
-SCRIPT_FOLDER=`dirname "$(readlink -f "$0")"`
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    SCRIPT_FOLDER=`dirname "$(readlink "$0")"`
+else
+    SCRIPT_FOLDER=`dirname "$(readlink -f "$0")"`
+fi
 
 pushd "$SCRIPT_FOLDER/templates"
 
@@ -47,6 +52,8 @@ then
     do
         cp "$file" "../$file"
         sed -i "" "s/@EMBER_VERSION/$VERSION_NUMBER/" ../$file
+        # https://stackoverflow.com/questions/6790631/use-the-contents-of-a-file-to-replace-a-string-using-sed
+        sed -i "" -e "/@SUPPORT_SCRIPTS/r ../support-scripts" -e "/@SUPPORT_SCRIPTS/d" ../$file
     done
 else
     echo "Not creating scripts...  exiting"

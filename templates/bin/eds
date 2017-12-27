@@ -1,9 +1,7 @@
 #!/bin/bash
-# This is the standard command to use when launching an ember server.  Note that
-# the container's host is available at hostname `host` instead of `localhost`.
+# This is the command to use when running interactive commands
 # eg:
-#   eds
-#   eds --proxy http://host:8080
+#   edi ember release --minor
 
 VERSION="@EMBER_VERSION"
 
@@ -12,39 +10,17 @@ then
     . ~/.config/edi/settings
 fi
 
-# Allow overriding the edi version
-if [ -n "$EDI_EMBER_VERSION" ]
-then
-    VERSION=$EDI_EMBER_VERSION
-fi
 
-linked_volumes=""
-if [ -r $HOME/.local/lib/node_modules/ ]
-then
-    for file in `find $HOME/.local/lib/node_modules/ -maxdepth 1 -type l`
-    do
-        name=`basename $file`
-        real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
-    done
-fi
 
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    # Linux
-    DOCKERHOST=`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"`
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    # Mac OSX
-    # Solution found via https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
-    DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
-fi
+@SUPPORT_SCRIPTS
+
+
+
+docker_image=`edi_calculate_docker_image`
 
 docker run --rm \
-       $linked_volumes \
-       --volume `pwd`:/app/ \
-       --volume /app/tmp \
-       -p 4200:4200 \
-       -p 7020:7020 \
-       -p 49152:49152 \
-       -p 49153:49153 \
-       --add-host host:$DOCKERHOST \
-       madnificent/ember:$VERSION ember serve $@
+       -it \
+       `edi_calculate_standard_docker_options` \
+       `edi_docker_server_exposed_ports_option $VERSION` \
+       `edi_docker_host_option ` \
+       $docker_image ember serve $@
