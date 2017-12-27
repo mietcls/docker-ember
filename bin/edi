@@ -11,6 +11,17 @@ then
     . ~/.config/edi/settings
 fi
 
+# Sensible defaults
+if [[ ! ${EDI_SSH_AGENT_CONTAINER+x} ]]
+then
+   if [[ "$OSTYPE" == "darwin"* ]]
+   then
+       EDI_SSH_AGENT_CONTAINER="yes"
+   else
+       EDI_SSH_AGENT_CONTAINER=""
+   fi
+fi
+
 # Calculates the desired ember version based on the current settings.
 edi_calculate_docker_image() {
     ember_version=""
