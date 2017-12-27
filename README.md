@@ -121,6 +121,10 @@ More information on user namespaces is available here:
 
 ### On Mac
 
+Mac uses a login shell when launching the default terminal app, which slightly changes the desired setup.  Sharing the ssh-agent socket currently doesn't work, and thus requires a workaround.
+
+#### 1. Make your shell read .bashrc
+
 Docker for Mac creates files under the right username automatically.  Mac does use a login shell when launching the default terminal app, rather than an interactive shell.  These shells don't read the standard ~/.bashrc file, but rather the ~/.bash\_profile file.  Make sure the following is present in your ~/.bash\_profile so ~/.bashrc is always read.
 
 ```
@@ -128,3 +132,7 @@ if [ -f ~/.bashrc ]; then
    source ~/.bashrc
 fi
 ```
+
+#### 2. Support the ssh-agent
+
+The ssh-agent's socket can't be shared with Docker for Mac at the time of writing.  A common workaround is to use a Docker container in which a new ssh-agent is ran.  We advise the use of the https://github.com/10eTechnology/docker-ssh-agent-forward and have integrated this in the supplied scripts.  On mac, this solution is assumed to be installed.
