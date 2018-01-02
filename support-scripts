@@ -171,23 +171,6 @@ edi_docker_server_exposed_ports_option() {
           -p 49153:49153 "
 }
 
-docker_image=`edi_calculate_docker_image`
-standard_options=`calculate_standard_docker_options`
-
-if [ -n "$EDI_USE_EDI_DAEMON" ]
-then
-    daemon_name=`edi_start_edi_daemon "$docker_image" "$standard_options"`
-
-    # run command
-    echo "Executing command $@ on $daemon_name"
-    docker exec -ti $daemon_name $@
-else
-    docker run --rm \
-           -it \
-           $standard_options \
-           $docker_image $@
-fi
-
 #
 # END SUPPORT SCRIPTS
 #
