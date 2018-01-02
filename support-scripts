@@ -111,7 +111,7 @@ edi_calculate_ssh_agent_options() {
 # - mounting of the application
 # - linked volumes for npm link
 # - options for sharing the ssh agent
-calculate_standard_docker_options() {
+edi_calculate_standard_docker_options() {
     app_volumes="--volume `pwd`:/app/:delegated \
                  --volume /app/tmp \
                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated "

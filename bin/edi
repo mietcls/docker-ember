@@ -2,16 +2,23 @@
 # This is the command to use when running interactive commands
 # eg:
 #   edi ember release --minor
-# see https://gist.github.com/d11wtq/8699521
 
-VERSION="2.14.0"
+VERSION="2.17.0"
 
 if [ -r ~/.config/edi/settings ]
 then
     . ~/.config/edi/settings
 fi
 
-# Sensible defaults
+
+
+#
+# BEGIN SUPPORT SCRIPTS
+#
+# These scripts are injected into the templates as supporting code
+# which may be used by multiple scripts.
+
+# Enable SSH agent by default on Darwin
 if [[ ! ${EDI_SSH_AGENT_CONTAINER+x} ]]
 then
    if [[ "$OSTYPE" == "darwin"* ]]
@@ -105,6 +112,7 @@ edi_calculate_ssh_agent_options() {
         fi
         ssh_agent_options="$(pinata-ssh-mount)"
     else
+        # see https://gist.github.com/d11wtq/8699521
         ssh_agent_options="--volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
                            -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
     fi
@@ -117,7 +125,7 @@ edi_calculate_ssh_agent_options() {
 # - mounting of the application
 # - linked volumes for npm link
 # - options for sharing the ssh agent
-calculate_standard_docker_options() {
+edi_calculate_standard_docker_options() {
     app_volumes="--volume `pwd`:/app/:delegated \
                  --volume /app/tmp \
                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated "
@@ -132,31 +140,59 @@ calculate_standard_docker_options() {
 edi_start_edi_daemon() {
     DOCKER_IMAGE=$1
     DOCKER_OPTIONS=$2
-    CONTAINER_NAME="edi"
+    project_name=`basename $(pwd) | sed -e "s/ /-/g"`
+    container_name="edi-$project_name"
 
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
-    if [ ! "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+    if [ ! "$(docker ps -q -f name=$container_name)" ]; then
 
-        # echo "Starting container named $CONTAINER_NAME"
+        # echo "Starting container named $container_name"
 
         # cleanup exited edi daemon
-        if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
-            docker rm $CONTAINER_NAME
+        if [ "$(docker ps -aq -f status=exited -f name=$container_name)" ]; then
+            docker rm $container_name
         fi
 
         # run new edi daemon
-        docker run -td --name $CONTAINER_NAME \
+        docker run -td --name $container_name \
                $DOCKER_OPTIONS \
                $DOCKER_IMAGE
         # TODO: add discovery of daemon and timeout
     fi
 
-    echo "$CONTAINER_NAME"
+    echo "$container_name"
 }
 
+edi_docker_host_option() {
+    if [[ "$OSTYPE" == "linux-gnu" ]]
+    then
+        # Linux
+        DOCKERHOST=`ip addr show docker0 | grep inet | head -n 1 | awk '{ print $2 }' | grep -oP "^[^/]+"`
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # Mac OSX
+        # Solution found via https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
+        DOCKERHOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)
+    fi
+    echo "--add-host host:$DOCKERHOST "
+}
+
+edi_docker_server_exposed_ports_option() {
+    # We receive the ember version but ignore it for now
+    echo "-p 4200:4200 \
+          -p 7020:7020 \
+          -p 49152:49152 \
+          -p 49153:49153 "
+}
+
+#
+# END SUPPORT SCRIPTS
+#
+
+
+
 docker_image=`edi_calculate_docker_image`
-standard_options=`calculate_standard_docker_options`
+standard_options=`edi_calculate_standard_docker_options`
 
 if [ -n "$EDI_USE_EDI_DAEMON" ]
 then
