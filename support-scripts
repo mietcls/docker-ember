@@ -126,27 +126,28 @@ calculate_standard_docker_options() {
 edi_start_edi_daemon() {
     DOCKER_IMAGE=$1
     DOCKER_OPTIONS=$2
-    CONTAINER_NAME="edi"
+    project_name=`basename $(pwd) | sed -e "s/ /-/g"`
+    container_name="edi-$project_name"
 
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
-    if [ ! "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+    if [ ! "$(docker ps -q -f name=$container_name)" ]; then
 
-        # echo "Starting container named $CONTAINER_NAME"
+        # echo "Starting container named $container_name"
 
         # cleanup exited edi daemon
-        if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
-            docker rm $CONTAINER_NAME
+        if [ "$(docker ps -aq -f status=exited -f name=$container_name)" ]; then
+            docker rm $container_name
         fi
 
         # run new edi daemon
-        docker run -td --name $CONTAINER_NAME \
+        docker run -td --name $container_name \
                $DOCKER_OPTIONS \
                $DOCKER_IMAGE
         # TODO: add discovery of daemon and timeout
     fi
 
-    echo "$CONTAINER_NAME"
+    echo "$container_name"
 }
 
 edi_docker_host_option() {
