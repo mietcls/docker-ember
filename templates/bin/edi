@@ -21,7 +21,7 @@ standard_options=`edi_calculate_standard_docker_options`
 
 if [ -n "$EDI_USE_EDI_DAEMON" ]
 then
-    daemon_name=`edi_start_edi_daemon "$docker_image" "$standard_options"`
+    edi_start_edi_daemon daemon_name "$docker_image" "$standard_options"
 
     # run command
     echo "Executing command $@ on $daemon_name"
