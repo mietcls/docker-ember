@@ -141,13 +141,43 @@ edi_start_edi_daemon() {
         fi
 
         # run new edi daemon
+        echo "Starting container named $container_name"
+
         docker run -td --name $container_name \
                $DOCKER_OPTIONS \
                $DOCKER_IMAGE
-        # TODO: add discovery of daemon and timeout
-    fi
 
-    echo "$container_name"
+        edi_wait_for_edi_daemon $container_name
+    fi
+}
+
+edi_wait_for_edi_daemon() {
+    container_name=$1
+    max_attempts=10
+    sleep_time=1
+
+    attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        echo "Waiting for $container_name to start, attempt number $attempt"
+
+        if edi_does_container_exist $container_name && $(docker inspect -f "{{.State.Running}}" $container_name); then
+            echo "container $container_name is running, proceeding..."
+            return
+        fi
+
+        echo "Container $container_name not started, sleeping $sleep_time second(s)"
+        sleep $sleep_time
+        let attempt=$attempt+1
+    done
+
+    echo "Error: $container_name failed to start within $max_attempts attempts..."
+}
+
+edi_does_container_exist() {
+    container_name=$1
+    [ "$(docker ps -q -f name=$container_name)" ]
+    return
 }
 
 edi_docker_host_option() {
