@@ -222,10 +222,11 @@ edi_docker_server_exposed_ports_option() {
 
 
 docker_image=`edi_calculate_docker_image`
+edi_calculate_standard_docker_options standard_options
 
 docker run --rm \
        -it \
-       `edi_calculate_standard_docker_options` \
+       $standard_options \
        `edi_docker_server_exposed_ports_option $VERSION` \
        `edi_docker_host_option ` \
        $docker_image ember serve $@
