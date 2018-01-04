@@ -138,16 +138,17 @@ edi_calculate_standard_docker_options() {
 }
 
 edi_start_edi_daemon() {
-    DOCKER_IMAGE=$1
-    DOCKER_OPTIONS=$2
     project_name=`basename $(pwd) | sed -e "s/ /-/g"`
     container_name="edi-$project_name"
 
+    # sets return value
+    eval "$1=$container_name"
+    DOCKER_IMAGE=$2
+    DOCKER_OPTIONS=$3
+
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
-    if [ ! "$(docker ps -q -f name=$container_name)" ]; then
-
-        # echo "Starting container named $container_name"
+    if ! edi_does_container_exist $container_name; then
 
         # cleanup exited edi daemon
         if [ "$(docker ps -aq -f status=exited -f name=$container_name)" ]; then
@@ -155,13 +156,43 @@ edi_start_edi_daemon() {
         fi
 
         # run new edi daemon
+        echo "Starting container named $container_name"
+
         docker run -td --name $container_name \
                $DOCKER_OPTIONS \
                $DOCKER_IMAGE
-        # TODO: add discovery of daemon and timeout
-    fi
 
-    echo "$container_name"
+        edi_wait_for_edi_daemon $container_name
+    fi
+}
+
+edi_wait_for_edi_daemon() {
+    container_name=$1
+    max_attempts=10
+    sleep_time=1
+
+    attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        echo "Waiting for $container_name to start, attempt number $attempt"
+
+        if edi_does_container_exist $container_name && $(docker inspect -f "{{.State.Running}}" $container_name); then
+            echo "container $container_name is running, proceeding..."
+            return
+        fi
+
+        echo "Container $container_name not started, sleeping $sleep_time second(s)"
+        sleep $sleep_time
+        let attempt=$attempt+1
+    done
+
+    echo "Error: $container_name failed to start within $max_attempts attempts..."
+}
+
+edi_does_container_exist() {
+    container_name=$1
+    [ "$(docker ps -q -f name=$container_name)" ]
+    return
 }
 
 edi_docker_host_option() {
