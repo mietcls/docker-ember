@@ -17,7 +17,7 @@ fi
 
 
 docker_image=`edi_calculate_docker_image`
-standard_options=`edi_calculate_standard_docker_options`
+edi_calculate_standard_docker_options standard_options
 
 if [ -n "$EDI_USE_EDI_DAEMON" ]
 then
