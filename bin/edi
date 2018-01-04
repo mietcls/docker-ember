@@ -117,8 +117,8 @@ edi_calculate_ssh_agent_options() {
                            -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
     fi
 
-    echo "$ssh_agent_options \
-          $known_hosts_volume_option"
+    all_options="$ssh_agent_options $known_hosts_volume_option"
+    eval "$1='$all_options'"
 }
 
 # Standard docker options including
@@ -130,11 +130,10 @@ edi_calculate_standard_docker_options() {
                  --volume /app/tmp \
                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated "
     linked_volumes=`edi_calculate_linked_volumes_for_node_modules`
-    ssh_agent_options=`edi_calculate_ssh_agent_options`
+    edi_calculate_ssh_agent_options ssh_agent_options
 
-    echo "$app_volumes \
-          $linked_volumes \
-          $ssh_agent_options "
+    all_options="$app_volumes $linked_volumes $ssh_agent_options"
+    eval "$1='$all_options'"
 }
 
 edi_start_edi_daemon() {
@@ -223,7 +222,7 @@ edi_docker_server_exposed_ports_option() {
 
 
 docker_image=`edi_calculate_docker_image`
-standard_options=`edi_calculate_standard_docker_options`
+edi_calculate_standard_docker_options standard_options
 
 if [ -n "$EDI_USE_EDI_DAEMON" ]
 then
@@ -231,7 +230,7 @@ then
 
     # run command
     echo "Executing command $@ on $daemon_name"
-    docker exec -ti $daemon_name $@
+    docker exec $daemon_name $@
 else
     docker run --rm \
            -it \
