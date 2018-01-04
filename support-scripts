@@ -124,16 +124,17 @@ edi_calculate_standard_docker_options() {
 }
 
 edi_start_edi_daemon() {
-    DOCKER_IMAGE=$1
-    DOCKER_OPTIONS=$2
     project_name=`basename $(pwd) | sed -e "s/ /-/g"`
     container_name="edi-$project_name"
 
+    # sets return value
+    eval "$1=$container_name"
+    DOCKER_IMAGE=$2
+    DOCKER_OPTIONS=$3
+
     # check if daemon container runs, if not start it (and clean eventual exited containers)
     # see https://stackoverflow.com/questions/38576337/execute-bash-command-if-docker-container-does-not-exist
-    if [ ! "$(docker ps -q -f name=$container_name)" ]; then
-
-        # echo "Starting container named $container_name"
+    if ! edi_does_container_exist $container_name; then
 
         # cleanup exited edi daemon
         if [ "$(docker ps -aq -f status=exited -f name=$container_name)" ]; then
