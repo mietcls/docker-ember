@@ -2,7 +2,6 @@
 # This is the command to use when running interactive commands
 # eg:
 #   edi ember release --minor
-# see https://gist.github.com/d11wtq/8699521
 
 VERSION="@EMBER_VERSION"
 
@@ -11,29 +10,25 @@ then
     . ~/.config/edi/settings
 fi
 
-# Allow overriding the edi version
-if [ -n "$EDI_EMBER_VERSION" ]
-then
-    VERSION=$EDI_EMBER_VERSION
-fi
 
-linked_volumes=""
-if [ -r $HOME/.local/lib/node_modules/ ]
-then
-    for file in `find $HOME/.local/lib/node_modules/ -maxdepth 1 -type l`
-    do
-        name=`basename $file`
-        real_target=`readlink $file`
-        linked_volumes="$linked_volumes --volume $file:/usr/lib/node_modules/$name/ "
-    done
-fi
 
-docker run --rm \
-       -it \
-       --volume `pwd`:/app/ \
-       --volume /app/tmp \
-       --volume $(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK) \
-       -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-       $linked_volumes \
-       --volume $HOME/.gitconfig:/root/.gitconfig \
-       madnificent/ember:$VERSION $@
+@SUPPORT_SCRIPTS
+
+
+
+docker_image=`edi_calculate_docker_image`
+edi_calculate_standard_docker_options standard_options
+
+if [ -n "$EDI_USE_EDI_DAEMON" ]
+then
+    edi_start_edi_daemon daemon_name "$docker_image" "$standard_options"
+
+    # run command
+    echo "Executing command $@ on $daemon_name"
+    docker exec $daemon_name $@
+else
+    docker run --rm \
+           -it \
+           $standard_options \
+           $docker_image $@
+fi
