@@ -91,15 +91,15 @@ See: https://github.com/mu-semtech/homebrew-scripts
 
 By default `ed*` commands run as root in the docker container, this means newly created files will be owned as root as well. To avoid this you can use user namespaces to map the container's root user to your own user. This requires some minimal configuration.
 
-Assuming systemd and a username `my-user` the following steps should suffice:
+*Note*: on ubuntu 16.04 your user needs to part of the docker group so that it has access to `/var/run/docker.sock`
+
+Assuming systemd and access to the `id` command the following steps should suffice:
 
 #### 1. Create the correct mapping in `/etc/subuid` and `/etc/subgid`:
 
 ```bash
-MY_USER_UID=`grep my-user  /etc/passwd | awk -F':' '{ print $3 }'`
-MY_USER_GUID=`grep my-user  /etc/passwd | awk -F':' '{ print $4 }'`
-echo "ns1:$MY_USER_UID:65536"| sudo tee -a /etc/subuid
-echo "ns1:$MY_USER_GUID:65536"| sudo tee -a /etc/subgid
+echo "$( whoami ):$(id -u):65536" |  sudo tee -a /etc/subuid
+echo "$( whoami ):$(id -g):65536" |  sudo tee -a /etc/subgid
 ```
 
 #### 2. Adjust ExecStart of docker daemon to include `--userns-remap=ns1`.
@@ -111,13 +111,12 @@ systemctl edit docker.service
 
 The config file might look this:
 ```
+[Service]
 ExecStart=
-ExecStart=/usr/bin/dockerd --userns-remap=ns1
+ExecStart=/usr/bin/dockerd --userns-remap="your-user-name"
 ```
 
-More information on user namespaces is available here:
- * http://docs-stage.docker.com/v1.10/engine/reference/commandline/daemon/#starting-the-daemon-with-user-namespaces-enabled
- * https://docs.oracle.com/cd/E52668_01/E75728/html/ol-docker-userns-remap.html
+More information on user namespaces is available [in the docker documentation](https://docs.docker.com/engine/security/userns-remap/)
 
 ### On Mac
 
