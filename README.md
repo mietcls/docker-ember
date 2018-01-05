@@ -135,3 +135,31 @@ fi
 #### 2. Support the ssh-agent
 
 The ssh-agent's socket can't be shared with Docker for Mac at the time of writing.  A common workaround is to use a Docker container in which a new ssh-agent is ran.  We advise the use of the https://github.com/10eTechnology/docker-ssh-agent-forward and have integrated this in the supplied scripts.  On mac, this solution is assumed to be installed.
+
+## Experimental features
+
+Some experimental features have been added which optimize the way the Docker daemon is called.  These features may behave oddly when developing addons.  It may be required to restart certain daemons after using edl, or to disable features when using edl.
+
+### Live daemon
+
+Some systems take more time than necessary to spin up a new docker daemon.  For these cases, you may choose to keep a daemon alive and send commands to the daemon.  Set `EDI_USE_EDI_DAEMON` to a non-empty string to enable this feature.
+
+Note: You will have to restart the daemon after using edl.
+
+### Optimize linked modules
+
+The ember docker links locally developed node modules.  Some optimizations are possible in this regard but they break edl.
+
+We mount all available node modules in a consistent way when you use edl.  Mounting many volumes may lead to a slow-down on some systems.  You may choose to mount only the used linked modules by setting `EDI_MOUNT_ONLY_USED_LINKED_MODULES` to a non-empty string.
+
+When using older versions of node when developing nested node modules the builds may fail because the right node submodules are not included.  This is not the case when the symlinks are removed.  Setting both `EDI_MOUNT_ONLY_USED_LINKED_MODULES` and `EDI_MOUNT_USED_NODE_MODULES_WITHOUT_SYMLINKS` will mount the used node_modules directly.  This may also have a positive performance impact, but we did not run benchmarks.
+
+These optimizations should be disabled when running edl as edl will not be able to find the addons to link.
+
+### SSH agent container
+
+We assume you are running an SSH agent container as mentioned earlier.  If your application never reaches to the outside world using your ssh key, you may disable this feature.
+
+On Mac, the socket of the native SSH agent can't be shared to the Docker image like we do in Linux.  We assume the necessary tooling is available on Mac to share the SSH agent.  Should you want to disable this feature, set `EDI_SSH_AGENT_CONTAINER` to an empty string.  If you want to force it to be turned on on Linux, then set it to a non-empty string.
+
+When you disable this option, your locally running socket will be shared.  When Docker for Mac starts supporting this feature, that will be the superior option.
