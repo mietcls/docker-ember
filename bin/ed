@@ -5,7 +5,7 @@
 #   ed npm install
 #   ed bower install
 
-VERSION="2.17.0"
+VERSION="3.0.0"
 
 if [ -r ~/.config/edi/settings ]
 then
@@ -128,7 +128,7 @@ edi_calculate_ssh_agent_options() {
 # - linked volumes for npm link
 # - options for sharing the ssh agent
 edi_calculate_standard_docker_options() {
-    app_volumes="--volume `pwd`:/app/:delegated \
+    app_volumes="--volume `pwd`:/app/:cached \
                  --volume /app/tmp \
                  --volume $HOME/.gitconfig:/root/.gitconfig:delegated "
     linked_volumes=`edi_calculate_linked_volumes_for_node_modules`
