@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
-
-LABEL maintainer="Aad Versteden <madnificent@gmail.com>"
+MAINTAINER Aad Versteden <madnificent@gmail.com>
 
 # Install nodejs as per http://askubuntu.com/questions/672994/how-to-install-nodejs-4-on-ubuntu-15-04-64-bit-edition
 RUN apt-get -y update; apt-get -y install wget python build-essential git libfontconfig curl rsync
