@@ -68,6 +68,8 @@ else
     exit 1;
 fi
 
+popd
+
 if $(answerPositive "Set $VERSION_NUMBER as your default version?")
 then
     echo "Writing ember version to ~/.config/edi/settings"
@@ -85,6 +87,13 @@ then
     fi
 else
     echo "Not changing settings in ~/.config/edi/settings"
+fi
+
+if $(answerPositive "Make local build of this version?")
+then
+    docker build . -t madnificent/ember:$VERSION_NUMBER
+else
+    echo "Not creating local build, continue with script"
 fi
 
 if $(answerPositive "Commit new version?")
