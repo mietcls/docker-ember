@@ -73,6 +73,7 @@ and you can provide interactive answers.
     edl -u
 
 *Note*: `edl` assumes `edi` is available on your PATH
+*Tip*: if you want to check a symlink has already been added to your project, simply type `ls -al node_modules/path-to-where-the-symlink-should-live`.
 
 ## How?
 
