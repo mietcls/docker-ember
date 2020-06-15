@@ -87,6 +87,12 @@ source ~/.bashrc
 We suggest to use brew installation scripts to account for specific issues related to docker for mac.
 See: https://github.com/mu-semtech/homebrew-scripts
 
+*Note*: On mac it happens quite often a port is already allocated, and your terminal throws an error similar to this:
+```docker: Error response from daemon: Ports are not available: listen tcp 0.0.0.0:49152: bind: address already in use.```
+Simply the live-reload-port, for instance, to this:
+`eds --live-reload-port=49001 --proxy https://dev.loket.lblod.info`
+Numbers between 49000 and 56000 should be safe.
+
 ## Configuration
 You can configure the Ember version in `~/.config/edi/settings` using the `VERSION` variable.
 ```bash
